@@ -15,12 +15,20 @@ public class TileMap : MonoBehaviour {
 	public GameObject tilePrefab_normal;
 	public GameObject tilePrefab_spikes;
 	public GameObject tilePrefab_saw;
+    public GameObject tilePrefab_press;
+    public GameObject tilePrefab_waterfall;
+    public GameObject tilePrefab_WaitSpeedUp;
+    public GameObject tilePrefab_rainbowRoad;
 
 
 	CameraScript camScript;
 	Vector3 lastTilePos;
 
+    
+
 	int dir; //straight = 0, turned = 1
+    int nxtDir; // next direction
+    int lstDir; // last direction
 
 	// Use this for initialization
 	void Start () {
@@ -28,6 +36,7 @@ public class TileMap : MonoBehaviour {
 		// initialize var
 		camScript = Camera.main.GetComponent<CameraScript>();
 		dir = 0; // default direction is straight
+        nxtDir = 0;
 
 		InitTile ();
 		SpawnTile (11);
@@ -55,36 +64,67 @@ public class TileMap : MonoBehaviour {
 
 	public void SpawnTile(int num){
 
-		for (int i = 0; i < num; i++) {
+        for (int i = 0; i < num; i++)
+        {
 
 
-			// change direction?
-			if (Random.Range (0, 5) == 1) {
+            lstDir = dir;
+            dir = nxtDir;
 
-				if (dir == 0)
-					dir = 1; // turn!
-			else
-					dir = 0; // straight!
-			}
+            // change direction next loop?
+            if (Random.Range(0, 5) == 1)
+            {
 
-			int rand = Random.Range (0, 10);
-			GameObject tile = tilePrefab_normal;
+                if (dir == 0)
+                    nxtDir = 1; // turn!
+                else
+                    nxtDir = 0; // straight!
+            }
 
 
 
-			switch (rand) {
+
+            int rand = Random.Range(0, 12);
+            GameObject tile = tilePrefab_normal;
+            Vector3 rot = new Vector3(0f, 0f, 0f);
+
+            // random road
+            ////////////////////////////////////////////////////////
+            if (Random.Range(0, 100) == 1) { 
+                SpawnRainbowRoad(5);
+                break;
+               }
+
+            // Type of tile
+            switch (rand) {
 			case 1: 
 				tile = tilePrefab_spikes;
 				break;
 			case 2:
-				if (dir != 1) {
-					tile = tilePrefab_saw;
-				}
+                if (nxtDir != 1 && lstDir != 1 && dir != 1)
+                        tile = tilePrefab_saw;               
 				break;
-			default:
-				tile = tilePrefab_normal;
+            case 3:
+                tile = tilePrefab_press;
+                break;
+            case 4:
+                if (nxtDir != 1 && lstDir != 1 && dir != 1)
+                    tile = tilePrefab_waterfall;
+                rot = new Vector3(0f, 180f, 0f);
+                break;
+            case 5:
+                tile = tilePrefab_WaitSpeedUp;
+
+                if (nxtDir != 1 && lstDir != 1 && dir != 1)
+                    rot = new Vector3(0f, 180f, 0f);
+                else if (dir == 1)
+                    rot = new Vector3(0f, -90f, 0f);
+                break;
+            default:
+			    tile = tilePrefab_normal;
 				break;
 			}
+
 				
 			// Calculate next coord
 			Vector3 SpawnPos = lastTilePos;
@@ -95,10 +135,7 @@ public class TileMap : MonoBehaviour {
 			}
 
 			// Instantiate 
-			GameObject go = (GameObject)Instantiate (tile, SpawnPos, Quaternion.identity);
-
-			// random color for each tile
-			//go.GetComponentInChildren<Renderer> ().material.color = new Color (Random.Range (0f, 1f), Random.Range (0f, 1f), Random.Range (0f, 1f));
+			GameObject go = (GameObject)Instantiate (tile, SpawnPos, Quaternion.Euler(rot));
 
 			// add to parent go
 			go.transform.parent = this.transform;
@@ -106,15 +143,61 @@ public class TileMap : MonoBehaviour {
 			// log position
 			lastTilePos = go.transform.position;
 
-			// move player unit to new tile
-			//playerUnit.GetComponent<unitMove> ().moveToTile (lastTilePos);
-
 			// record into tile array
 			tiles.Add( go );
-
-		}
-
+        }
 	}
+
+
+
+    void SpawnRainbowRoad(int num)
+    {
+
+        GameObject tile = tilePrefab_rainbowRoad;
+        Vector3 rot = new Vector3(0f, 0f, 0f);
+
+        for (int i = 0; i < num; i++)
+        {
+
+            lstDir = dir;
+            dir = nxtDir;
+
+            // change direction next loop?
+            if (Random.Range(0, 5) == 1)
+            {
+
+                if (dir == 0)
+                    nxtDir = 1; // turn!
+                else
+                    nxtDir = 0; // straight!
+            }
+
+            // Calculate next coord
+            Vector3 SpawnPos = lastTilePos;
+            if (dir == 0)
+            {   // straight
+                SpawnPos = new Vector3(lastTilePos.x, lastTilePos.y + .5f, lastTilePos.z + 1.5f);
+            }
+            else if (dir == 1)
+            { // turn!
+                SpawnPos = new Vector3(lastTilePos.x - 1.5f, lastTilePos.y + .5f, lastTilePos.z);
+            }
+
+            // Instantiate 
+            GameObject go = (GameObject)Instantiate(tile, SpawnPos, Quaternion.Euler(rot));
+
+
+            // add to parent go
+            go.transform.parent = this.transform;
+
+            // log position
+            lastTilePos = go.transform.position;
+
+            // record into tile array
+            tiles.Add(go);
+
+        }
+    }
 
 
 	public Vector3 GetTilePos( int num ){
@@ -141,6 +224,8 @@ public class TileMap : MonoBehaviour {
 		playerUnit.UnitPosToTileList (0);
 
 	}
+
+
 
 	public void ResetGame(){
 

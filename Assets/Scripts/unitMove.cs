@@ -13,12 +13,16 @@ public class unitMove : MonoBehaviour {
 	CameraScript camScript;
 	public TileMap tileMap;
 
+    public TextMesh scoreText;
+    BoxCollider boxCollider;
+
 	// Use this for initialization
 	void Start () {
 		
 		currentTile = 0;
 		camScript = Camera.main.GetComponent<CameraScript> ();
 		anim = GetComponentInChildren<Animator> ();
+        boxCollider = GetComponent<BoxCollider>();
 	}
 
 	public void moveToNextTile(){
@@ -68,11 +72,20 @@ public class unitMove : MonoBehaviour {
 
 	void Update(){
 
-		if (Input.GetMouseButtonDown(0)){
+		if (Input.GetMouseButtonDown(0) || Input.GetButtonDown("Fire1")){
 
 			moveToNextTile ();
+            scoreText.text = currentTile.ToString();
+
 
 		}
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            StartCoroutine(moveNumTiles(13));
+        }
+
+        
 	}
 
 	public int GetCurrentTile(){
@@ -88,10 +101,30 @@ public class unitMove : MonoBehaviour {
 
 	void OnTriggerEnter( Collider col){
 
-		Debug.Log ("collision with player!!!");
-
-		tileMap.ResetGame ();
+        if (col.gameObject.layer == 9)
+		    tileMap.ResetGame ();
 	}
+
+    public void OnSpeedUp()
+    {
+        StartCoroutine(moveNumTiles(13));
+    }
+
+    IEnumerator moveNumTiles( int num){
+
+        boxCollider.enabled = false;
+
+        for (int i=0; i < num; i++)
+        {
+            moveToNextTile();
+
+            yield return new WaitForSeconds(0.05f);
+        }
+
+        boxCollider.enabled = true;
+
+
+    }
 
 	
 
