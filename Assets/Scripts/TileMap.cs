@@ -19,6 +19,9 @@ public class TileMap : MonoBehaviour {
     public GameObject tilePrefab_waterfall;
     public GameObject tilePrefab_WaitSpeedUp;
     public GameObject tilePrefab_rainbowRoad;
+    public GameObject tilePrefab_movingZ;
+
+    int lastMovingTileNum;
 
 
 	CameraScript camScript;
@@ -37,6 +40,7 @@ public class TileMap : MonoBehaviour {
 		camScript = Camera.main.GetComponent<CameraScript>();
 		dir = 0; // default direction is straight
         nxtDir = 0;
+        lastMovingTileNum = 0;
 
 		InitTile ();
 		SpawnTile (11);
@@ -97,29 +101,37 @@ public class TileMap : MonoBehaviour {
 
             // Type of tile
             switch (rand) {
-			case 1: 
-				tile = tilePrefab_spikes;
-				break;
-			case 2:
-                if (nxtDir != 1 && lstDir != 1 && dir != 1)
-                        tile = tilePrefab_saw;               
-				break;
-            case 3:
-                tile = tilePrefab_press;
-                break;
-            case 4:
-                if (nxtDir != 1 && lstDir != 1 && dir != 1)
-                    tile = tilePrefab_waterfall;
-                rot = new Vector3(0f, 180f, 0f);
-                break;
-            case 5:
-                tile = tilePrefab_WaitSpeedUp;
-
-                if (nxtDir != 1 && lstDir != 1 && dir != 1)
+                case 1:
+                    tile = tilePrefab_spikes;
+                    break;
+                case 2:
+                    if (nxtDir != 1 && lstDir != 1 && dir != 1)
+                        tile = tilePrefab_saw;
+                    break;
+                case 3:
+                    tile = tilePrefab_press;
+                    break;
+                case 4:
+                    if (nxtDir != 1 && lstDir != 1 && dir != 1)
+                        tile = tilePrefab_waterfall;
                     rot = new Vector3(0f, 180f, 0f);
-                else if (dir == 1)
-                    rot = new Vector3(0f, -90f, 0f);
-                break;
+                    break;
+                case 5:
+                    //tile = tilePrefab_WaitSpeedUp;
+
+                    //if (nxtDir != 1 && lstDir != 1 && dir != 1)
+                    //    rot = new Vector3(0f, 180f, 0f);
+                    //else if (dir == 1)
+                    //    rot = new Vector3(0f, -90f, 0f);
+                    break;
+                case 6:
+                    if (nxtDir != 1 && lstDir != 1 && dir != 1 && (tiles.Count - lastMovingTileNum) > 1) { 
+                        tile = tilePrefab_movingZ;
+                        lastTilePos.z += 2f;
+                        lastMovingTileNum = tiles.Count + 1;
+                    }
+                    break;
+
             default:
 			    tile = tilePrefab_normal;
 				break;
@@ -207,11 +219,25 @@ public class TileMap : MonoBehaviour {
 		return tiles [num].transform.position;
 	}
 
+    public GameObject GetTileGO( int num)
+    {
+        return tiles[num];
+    }
+
+    public bool isMovingtile(int num){
+
+        if (tiles[num].layer == 11){
+            return true;
+        }
+
+        return false;
+    }
 
 
-	// removes and deletes all tile gameObjects
-	// below the int provided.
-	public void CleanupTiles( int num ){
+
+    // removes and deletes all tile gameObjects
+    // below the int provided.
+    public void CleanupTiles( int num ){
 		
 		for (int i = 0; i < num; i++) {
 
@@ -228,6 +254,8 @@ public class TileMap : MonoBehaviour {
 
 
 	public void ResetGame(){
+
+        Debug.Log("Player died");
 
 		for (int i = 0; i < tiles.Count; i++) {
 			Destroy (tiles [i].gameObject);

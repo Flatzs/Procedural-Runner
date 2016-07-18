@@ -3,13 +3,24 @@ using System.Collections;
 
 public class CameraScript : MonoBehaviour {
 
-	public void MoveToTile( Vector3 tilePos){
+    public Transform playerUnit;
 
-		transform.position = new Vector3 (	tilePos.x + 9f,
-											10,
-											tilePos.z - 6f
-										 );
+    void Update()
+    {
+        //transform.position = new Vector3(playerUnit.position.x + 9f,
+        //								 playerUnit.position.y + 10f,
+        //								 playerUnit.position.z - 6f
+        //								 );
+
+    }
+
+    public void MoveToTile( Vector3 tilePos){
+
+        transform.position = new Vector3(tilePos.x + 9f,
+                                            tilePos.y + 10f,
+                                            tilePos.z - 6f
+                                         );
 
 
-	}
+    }
 }
